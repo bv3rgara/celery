@@ -31,6 +31,16 @@ services:
     depends_on: 
       - django
       - redis
+
+  flower:
+    image: mher/flower
+    container_name: flower
+    environment:
+        - CELERY_BROKER_URL=redis://redis:6379/0
+        - FLOWER_PORT=8888
+    ports:
+        - 5555:8888
+    restart: "always"
   
   pgdb:
     image: postgres

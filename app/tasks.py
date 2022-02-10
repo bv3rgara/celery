@@ -10,8 +10,5 @@ def add(x, y):
 
 @shared_task
 def waitNSeconds(n):
-    if n > 0:
-        n -= 1
-        print('segundo' + str(n))
     time.sleep(n)
     return True
