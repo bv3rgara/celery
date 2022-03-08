@@ -12,49 +12,65 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER=redis://redis_dj:6379/0
+      - CELERY_BACKEND=redis://redis_dj:6379/0
     depends_on:
-      - pgdb
-      - redis
+      - pgdb_dj
+      - redis_dj
+    networks:
+      - django-celery
         
-  celery:
+  celery_dj:
     build: .
+    container_name: celery_dj
     command: celery -A core worker -l INFO
     volumes:
       - .:/usr/src/app
     environment:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER=redis://redis_dj:6379/0
+      - CELERY_BACKEND=redis://redis_dj:6379/0
     depends_on: 
       - django
-      - redis
+      - redis_dj
+    networks:
+      - django-celery
 
-  flower:
+  flower_dj:
     image: mher/flower
-    container_name: flower
+    container_name: flower_dj
     environment:
-        - CELERY_BROKER_URL=redis://redis:6379/0
+        - CELERY_BROKER_URL=redis://redis_dj:6379/0
         - FLOWER_PORT=8888
     ports:
-        - 5555:8888
+        - 5556:8888
     restart: "always"
+    networks:
+      - django-celery
   
-  pgdb:
+  pgdb_dj:
     image: postgres
-    container_name: pgdb
+    container_name: pgdb_dj
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
       - pgdata:/var/lib/postgresql/data/
+    networks:
+      - django-celery
     
-  redis:
+  redis_dj:
+    container_name: redis_dj
     image: "redis:alpine"
+    networks:
+      - django-celery
 
 volumes:
   pgdata:
 
+networks:
+  django-celery:
+    external:
+      name: django-celery
